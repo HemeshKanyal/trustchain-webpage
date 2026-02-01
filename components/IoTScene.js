@@ -36,7 +36,7 @@ const IoTScene = () => {
       setRfid(newRfid);
 
       setLogs((prev) => [
-        { id: Date.now(), text: `Temp: ${newTemp}°C | GPS: ${newGps} | RFID: ${newRfid}` },
+        { id: Date.now() + Math.random(), text: `Temp: ${newTemp}°C | GPS: ${newGps} | RFID: ${newRfid}` },
         ...prev.slice(0, 6),
       ]);
     }, 1000);
@@ -44,7 +44,11 @@ const IoTScene = () => {
   }, []);
 
   return (
-    <section
+    <motion.section
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      viewport={{ once: true, amount: 0.2 }}
       style={{
         height: "100vh",
         background: "radial-gradient(circle at center, #0a0a0a, #000)",
@@ -195,7 +199,7 @@ const IoTScene = () => {
           }
         }
       `}</style>
-    </section>
+    </motion.section>
   );
 };
 

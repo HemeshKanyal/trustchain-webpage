@@ -23,7 +23,13 @@ export default function PyramidScene() {
   const heights = [66.66, 53.33, 93.33, 160];
 
   return (
-    <div className="flex flex-col w-full text-white relative font-sans">
+    <motion.div
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      transition={{ duration: 1, ease: "easeOut" }}
+      viewport={{ once: true, amount: 0.1 }}
+      className="flex flex-col w-full text-white relative font-sans"
+    >
       {/* Pyramid Section */}
       <div className="relative w-full min-h-screen flex">
         {/* Full Section Grid Background */}
@@ -49,9 +55,8 @@ export default function PyramidScene() {
                       height: `${heights[index]}px`,
                       clipPath: shapeClip,
                       background: isActive ? layer.color : "#111111",
-                      border: `1px solid ${
-                        isActive ? layer.color : "rgba(255,255,255,0.05)"
-                      }`,
+                      border: `1px solid ${isActive ? layer.color : "rgba(255,255,255,0.05)"
+                        }`,
                       transition: "all 0.5s ease",
                     }}
                     animate={{
@@ -99,7 +104,7 @@ export default function PyramidScene() {
           onActive={() => {}}
         />
       </div> */}
-    </div>
+    </motion.div>
   );
 }
 
@@ -170,83 +175,83 @@ function Section({ id, label, color, onActive }) {
         <h2 className="text-8xl font-semibold mb-6 tracking-tight text-white">
           {label}
         </h2>
-        <p className="text-gray-300 text-2xl leading-relaxed font-normal space-y-4">
-  {label === "Blockchain" && (
-    <>
-      <div className="flex items-start gap-2">
-        <Blocks className="w-6 h-6 text-blue-400 flex-shrink-0" />
-        <span>
-          <strong>Blockchain</strong> provides an immutable ledger that ensures medical records
-          cannot be altered or tampered with. Every update is time-stamped and
-          securely stored, building trust between hospitals, suppliers, and patients.
-        </span>
-      </div>
-      <div className="flex items-start gap-2">
-        <Shield className="w-6 h-6 text-green-400 flex-shrink-0" />
-        <span>
-          Reduces paperwork, streamlines audits, and enhances data security in
-          the healthcare supply chain.
-        </span>
-      </div>
-    </>
-  )}
+        <div className="text-gray-300 text-2xl leading-relaxed font-normal space-y-4">
+          {label === "Blockchain" && (
+            <>
+              <div className="flex items-start gap-2">
+                <Blocks className="w-6 h-6 text-blue-400 flex-shrink-0" />
+                <span>
+                  <strong>Blockchain</strong> provides an immutable ledger that ensures medical records
+                  cannot be altered or tampered with. Every update is time-stamped and
+                  securely stored, building trust between hospitals, suppliers, and patients.
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Shield className="w-6 h-6 text-green-400 flex-shrink-0" />
+                <span>
+                  Reduces paperwork, streamlines audits, and enhances data security in
+                  the healthcare supply chain.
+                </span>
+              </div>
+            </>
+          )}
 
-  {label === "IoT" && (
-    <>
-      <div className="flex items-start gap-2">
-        <Satellite className="w-6 h-6 text-teal-400 flex-shrink-0" />
-        <span>
-          <strong>IoT devices</strong> enable real-time monitoring of temperature, location, and product
-          authenticity with pinpoint accuracy.
-        </span>
-      </div>
-      <div className="flex items-start gap-2">
-        <Shield className="w-6 h-6 text-red-400 flex-shrink-0" />
-        <span>
-          If any irregularity occurs, such as a broken cold chain, the system sends
-          immediate alerts to prevent compromised medicines from being used.
-        </span>
-      </div>
-    </>
-  )}
+          {label === "IoT" && (
+            <>
+              <div className="flex items-start gap-2">
+                <Satellite className="w-6 h-6 text-teal-400 flex-shrink-0" />
+                <span>
+                  <strong>IoT devices</strong> enable real-time monitoring of temperature, location, and product
+                  authenticity with pinpoint accuracy.
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Shield className="w-6 h-6 text-red-400 flex-shrink-0" />
+                <span>
+                  If any irregularity occurs, such as a broken cold chain, the system sends
+                  immediate alerts to prevent compromised medicines from being used.
+                </span>
+              </div>
+            </>
+          )}
 
-  {label === "AI" && (
-    <>
-      <div className="flex items-start gap-2">
-        <Cpu className="w-6 h-6 text-purple-400 flex-shrink-0" />
-        <span>
-          <strong>Artificial Intelligence</strong> powers predictive analytics and anomaly detection,
-          helping identify fraud or counterfeit drugs before they cause harm.
-        </span>
-      </div>
-      <div className="flex items-start gap-2">
-        <Shield className="w-6 h-6 text-yellow-400 flex-shrink-0" />
-        <span>
-          Provides insights into supply chain optimization, demand forecasting,
-          and compliance automation.
-        </span>
-      </div>
-    </>
-  )}
+          {label === "AI" && (
+            <>
+              <div className="flex items-start gap-2">
+                <Cpu className="w-6 h-6 text-purple-400 flex-shrink-0" />
+                <span>
+                  <strong>Artificial Intelligence</strong> powers predictive analytics and anomaly detection,
+                  helping identify fraud or counterfeit drugs before they cause harm.
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Shield className="w-6 h-6 text-yellow-400 flex-shrink-0" />
+                <span>
+                  Provides insights into supply chain optimization, demand forecasting,
+                  and compliance automation.
+                </span>
+              </div>
+            </>
+          )}
 
-  {label === "TrustChain" && (
-    <>
-      <div className="flex items-start gap-2">
-        <Shield className="w-6 h-6 text-indigo-400 flex-shrink-0" />
-        <span>
-          <strong>TrustChain</strong> integrates Blockchain, IoT, and AI into a unified system for
-          securing the entire medical supply chain.
-        </span>
-      </div>
-      <div className="flex items-start gap-2">
-        <Blocks className="w-6 h-6 text-pink-400 flex-shrink-0" />
-        <span>
-          Ensures transparency, efficiency, and safety from production to patient delivery.
-        </span>
-      </div>
-    </>
-  )}
-</p>
+          {label === "TrustChain" && (
+            <>
+              <div className="flex items-start gap-2">
+                <Shield className="w-6 h-6 text-indigo-400 flex-shrink-0" />
+                <span>
+                  <strong>TrustChain</strong> integrates Blockchain, IoT, and AI into a unified system for
+                  securing the entire medical supply chain.
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Blocks className="w-6 h-6 text-pink-400 flex-shrink-0" />
+                <span>
+                  Ensures transparency, efficiency, and safety from production to patient delivery.
+                </span>
+              </div>
+            </>
+          )}
+        </div >
 
       </motion.div>
     </div>

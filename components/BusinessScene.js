@@ -15,10 +15,16 @@ const BusinessImpactScene = () => {
   const maxBarHeight = 300; // max px for 100%
   const particleCount = 40; // number of floating particles
 
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <div className="relative w-full h-screen bg-black flex flex-col items-center justify-center text-white overflow-hidden px-12">
       {/* Background Particles */}
-      {Array.from({ length: particleCount }).map((_, i) => (
+      {isMounted && Array.from({ length: particleCount }).map((_, i) => (
         <motion.div
           key={i}
           className="absolute w-1 h-1 bg-green-500 rounded-full opacity-40"

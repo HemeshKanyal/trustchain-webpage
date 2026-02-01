@@ -112,7 +112,7 @@ function latLonToXYZ(latDeg, lonDeg, radius, offsetLat = 0, offsetLon = 0) {
   const latRad = ((latDeg + offsetLat) * Math.PI) / 300;
   const lonRad = ((lonDeg + offsetLon) * Math.PI) / 40;
 
-  const x = radius * Math.cos(latRad) * Math.cos(lonRad) ;
+  const x = radius * Math.cos(latRad) * Math.cos(lonRad);
   const y = radius * Math.sin(latRad);
   const z = radius * Math.cos(latRad) * Math.sin(lonRad);
   return [x, y, z];
@@ -153,12 +153,11 @@ function generateHotspots() {
 }
 
 // 🌌 Futuristic Globe
-function FuturisticGlobe() {
+function FuturisticGlobe({ scrollYProgress }) {
   const globeRef = useRef();
   const colorMap = useLoader(TextureLoader, "/textures/earth_daymap.jpg");
   const hotspotPositions = useMemo(() => generateHotspots(), []);
 
-  const { scrollYProgress } = useScroll();
   const globeScale = useTransform(scrollYProgress, [0, 0.3], [1, 1.2]);
   const globePositionX = useTransform(scrollYProgress, [0, 0.3], [0, -0.8]);
 
@@ -196,7 +195,7 @@ function FuturisticGlobe() {
 
       {/* ✅ Controls now locked around India/Africa */}
       <OrbitControls
-        enableZoom={true}
+        enableZoom={false}
         minDistance={3}
         maxDistance={10}
         target={[0.8, 0.2, 0]} // centers camera
@@ -218,7 +217,7 @@ export default function HeroScene() {
         <ambientLight intensity={0.6} />
         <directionalLight position={[5, 5, 5]} intensity={1.5} />
         <Particles />
-        <FuturisticGlobe />
+        <FuturisticGlobe scrollYProgress={scrollYProgress} />
       </Canvas>
 
       <motion.div
