@@ -7,12 +7,12 @@ import { useInView } from "react-intersection-observer";
 
 // Icons
 const Icon = {
-  Admin: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>),
-  Manufacturer: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M7 7V4h10v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>),
-  Distributor: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="7" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.5"/><circle cx="19" cy="14" r="2" stroke="currentColor" strokeWidth="1.5"/><path d="M16 11h4v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>),
-  Pharmacy: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/><path d="M7 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>),
-  Doctor: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="7" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>),
-  Patient: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M4 20v-1a4 4 0 014-4h8a4 4 0 014 4v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>)
+  Admin: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" /><path d="M4 20c0-3.3 2.7-6 6-6h4c3.3 0 6 2.7 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>),
+  Manufacturer: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="7" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" /><path d="M7 7V4h10v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>),
+  Distributor: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="7" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" /><circle cx="19" cy="14" r="2" stroke="currentColor" strokeWidth="1.5" /><path d="M16 11h4v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>),
+  Pharmacy: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" /><path d="M7 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>),
+  Doctor: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" /><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>),
+  Patient: (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" /><path d="M4 20v-1a4 4 0 014-4h8a4 4 0 014 4v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>)
 };
 
 const DEFAULT_STEPS = [
@@ -29,8 +29,8 @@ export default function WorkflowScene({
   durationPerStep = 0.7,
   pauseMs = 350,
   pillId = "MED-001",
-  onStep = () => {},
-  onComplete = () => {}
+  onStep = () => { },
+  onComplete = () => { }
 }) {
   const containerRef = useRef(null);
   const stageRefs = useRef([]);
@@ -51,6 +51,7 @@ export default function WorkflowScene({
     return () => window.removeEventListener('resize', calcPositions);
   }, [steps.length]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (inView && !playing) runSequence();
   }, [inView]);
@@ -61,7 +62,7 @@ export default function WorkflowScene({
       const x = positions.current[i] - 18;
       await controls.start({ x, transition: { duration: durationPerStep, ease: 'easeInOut' } });
       setActiveStep(i);
-      try { onStep({ step: steps[i], index: i }); } catch {}
+      try { onStep({ step: steps[i], index: i }); } catch { }
       await new Promise(r => setTimeout(r, pauseMs));
     }
     setActiveStep(-1);
@@ -74,7 +75,7 @@ export default function WorkflowScene({
 
   return (
     <section ref={inViewRef} className="relative py-24 bg-gradient-to-b from-gray-900 via-indigo-950 to-black overflow-hidden font-inter">
-      
+
       {/* Floating futuristic background shapes */}
       <motion.div className="absolute inset-0 pointer-events-none">
         <motion.div className="absolute w-72 h-72 top-10 left-1/4 bg-cyan-500/30 rounded-full blur-3xl animate-pulse" />
@@ -103,46 +104,23 @@ export default function WorkflowScene({
 
           {/* nodes row */}
           <div className="relative z-10 flex items-center justify-between gap-6 w-full">
-            {steps.map((s, i) => {
-              const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.3 });
-              return (
-                <motion.div
-                  key={s.id}
-                  ref={el => { stageRefs.current[i] = el; ref(el); }}
-                  className="flex-1 flex flex-col items-center text-center"
-                  variants={scrollVariants}
-                  initial="hidden"
-                  animate={inView ? "show" : "hidden"}
-                  transition={{ duration: 0.6, delay: i * 0.1 }}
-                >
-                  {/* Node with neon burst */}
-                  <motion.div
-                    animate={activeStep===i ? { scale: 1.2, boxShadow: "0 0 24px 8px rgba(0,255,255,0.5)" } : { scale: 1, boxShadow: "0 0 6px 0 rgba(0,0,0,0.2)" }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                    className={`w-20 h-20 rounded-xl flex items-center justify-center mb-2 ${activeStep===i ? 'bg-gradient-to-tr from-cyan-400 to-purple-500 ring-4 ring-cyan-300' : 'bg-gray-700 hover:bg-gray-600'} shadow-lg`}
-                  >
-                    <div className="text-white w-10 h-10">{s.icon}</div>
-                  </motion.div>
-
-                  <div className="text-sm text-gray-300 font-medium mb-2 tracking-wide">{s.label}</div>
-
-                  <motion.div
-                    initial="hidden"
-                    animate={activeStep===i ? 'show':'hidden'}
-                    variants={contractVariants}
-                    transition={{ type:'spring', stiffness:300, damping:20 }}
-                  >
-                    {activeStep===i && <div className="inline-flex items-center gap-2 bg-cyan-600/95 text-white text-xs px-3 py-1 rounded-full shadow-lg tracking-wide">🔒 Contract</div>}
-                  </motion.div>
-                </motion.div>
-              );
-            })}
+            {steps.map((s, i) => (
+              <WorkflowStep
+                key={s.id}
+                step={s}
+                index={i}
+                activeStep={activeStep}
+                setRef={(el) => (stageRefs.current[i] = el)}
+                scrollVariants={scrollVariants}
+                contractVariants={contractVariants}
+              />
+            ))}
           </div>
 
           {/* moving medicine strip with comet trail */}
           <motion.div animate={controls} className="absolute top-[30px] left-0 z-20 pointer-events-none" style={{ x: 0 }}>
             <div className="relative w-40 h-12 flex items-center px-4">
-              
+
               {/* Comet tail */}
               <motion.div
                 className="absolute left-0 top-1/2 -translate-y-1/2 h-2 w-64 rounded-full bg-gradient-to-r from-transparent via-cyan-400 to-cyan-600 opacity-70 blur-2xl"
@@ -172,7 +150,7 @@ export default function WorkflowScene({
 
           {/* replay button */}
           <div className="absolute right-4 bottom-4 z-30">
-            <button onClick={() => { if(!playing) runSequence(); }} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow-md tracking-wide">Replay</button>
+            <button onClick={() => { if (!playing) runSequence(); }} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow-md tracking-wide">Replay</button>
           </div>
         </div>
 
@@ -181,5 +159,57 @@ export default function WorkflowScene({
         </p>
       </div>
     </section>
+  );
+}
+
+// Sub-component to handle hooks correctly
+function WorkflowStep({ step, index, activeStep, setRef, scrollVariants, contractVariants }) {
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.3 });
+
+  return (
+    <motion.div
+      ref={(el) => {
+        setRef(el); // parent ref
+        ref(el);    // local useInView ref
+      }}
+      className="flex-1 flex flex-col items-center text-center"
+      variants={scrollVariants}
+      initial="hidden"
+      animate={inView ? "show" : "hidden"}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+    >
+      {/* Node with neon burst */}
+      <motion.div
+        animate={
+          activeStep === index
+            ? { scale: 1.2, boxShadow: "0 0 24px 8px rgba(0,255,255,0.5)" }
+            : { scale: 1, boxShadow: "0 0 6px 0 rgba(0,0,0,0.2)" }
+        }
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={`w-20 h-20 rounded-xl flex items-center justify-center mb-2 ${activeStep === index
+          ? "bg-gradient-to-tr from-cyan-400 to-purple-500 ring-4 ring-cyan-300"
+          : "bg-gray-700 hover:bg-gray-600"
+          } shadow-lg`}
+      >
+        <div className="text-white w-10 h-10">{step.icon}</div>
+      </motion.div>
+
+      <div className="text-sm text-gray-300 font-medium mb-2 tracking-wide">
+        {step.label}
+      </div>
+
+      <motion.div
+        initial="hidden"
+        animate={activeStep === index ? "show" : "hidden"}
+        variants={contractVariants}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      >
+        {activeStep === index && (
+          <div className="inline-flex items-center gap-2 bg-cyan-600/95 text-white text-xs px-3 py-1 rounded-full shadow-lg tracking-wide">
+            🔒 Contract
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
   );
 }
