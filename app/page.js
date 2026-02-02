@@ -4,6 +4,7 @@ import { Scroll } from "framer-motion";
 import Navbar from "../components/Navbar";
 import HeroScene from "../components/HeroScene";
 import SolutionScene from "../components/SolutionScene";
+import Footer from "../components/Footer";
 import PyramidScene from "../components/PyramidScene";
 import WorkflowScene from "../components/WorkflowScene";
 import IoTScene from "../components/IoTScene";
@@ -26,6 +27,7 @@ export default function Home() {
       <section><FeaturesScene /></section>
       <section><BusinessScene /></section>
       <section><ImpactScene /></section>
+      <Footer />
     </main>
   );
 }
