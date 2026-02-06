@@ -42,9 +42,14 @@ export default function Navbar() {
 
       {/* Right corner → Auth buttons */}
       <div className="flex gap-4">
-        <button className="px-4 py-2 border border-white/40 rounded-md text-sm hover:bg-white hover:text-black transition">
+        <a
+          href="https://trustchain-livid.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-4 py-2 border border-white/40 rounded-md text-sm hover:bg-white hover:text-black transition"
+        >
           Get Started
-        </button>
+        </a>
       </div>
     </nav>
   );

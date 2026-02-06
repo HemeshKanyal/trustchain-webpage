@@ -153,14 +153,17 @@ export default function ImpactScene() {
         <p className="mt-6 text-xl md:text-2xl text-gray-300 max-w-xl">
           Empowering industries worldwide with trust, security, and transparency in every supply chain.
         </p>
-        <motion.button
-          className="mt-8 px-10 py-4 bg-green-500 rounded-xl font-bold text-black shadow-lg hover:bg-green-400"
+        <motion.a
+          href="https://trustchain-livid.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-8 px-10 py-4 bg-green-500 rounded-xl font-bold text-black shadow-lg hover:bg-green-400 inline-block"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.6 }}
         >
           Get Started
-        </motion.button>
+        </motion.a>
       </motion.div>
     </div>
   );
