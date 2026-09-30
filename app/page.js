@@ -1,6 +1,8 @@
 "use client";
 
-import { Scroll } from "framer-motion";
+import { MotionConfig } from "framer-motion";
+import SmoothScroll from "../components/SmoothScroll";
+import AmbientBackground from "../components/three/AmbientBackground";
 import Navbar from "../components/Navbar";
 import HeroScene from "../components/HeroScene";
 import SolutionScene from "../components/SolutionScene";
@@ -14,20 +16,24 @@ import ImpactScene from "../components/ImpactScene";
 
 export default function Home() {
   return (
-    <main className="relative w-full min-h-screen bg-[#0a0a0a] text-white">
-      {/* Navbar */}
-      <Navbar />
+    <MotionConfig reducedMotion="user">
+      <SmoothScroll />
+      <AmbientBackground />
+      <main className="relative z-10 w-full min-h-screen text-white">
+        {/* Navbar */}
+        <Navbar />
 
-      {/* Sections */}
-      <section><HeroScene /></section>
-      <section className="relative h-[300vh]"><SolutionScene /></section>
-      <section><PyramidScene /></section>
-      <section><WorkflowScene /></section>
-      <section><IoTScene /></section>
-      <section><FeaturesScene /></section>
-      <section><BusinessScene /></section>
-      <section><ImpactScene /></section>
-      <Footer />
-    </main>
+        {/* Chapters (see lib/chapters.js) */}
+        <HeroScene />
+        <SolutionScene />
+        <PyramidScene />
+        <WorkflowScene />
+        <IoTScene />
+        <FeaturesScene />
+        <BusinessScene />
+        <ImpactScene />
+        <Footer />
+      </main>
+    </MotionConfig>
   );
 }
