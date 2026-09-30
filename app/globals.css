@@ -2,14 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-
-html {
-  scroll-behavior: smooth;
-}
-
 body {
-  font-family: 'Inter', sans-serif;
-  background: radial-gradient(circle at top, #0f1626, #0a0f1c 80%);
-  color: #e0e0e0;
+  background: #04060b;
 }
 
+::selection {
+  background: rgba(45, 212, 191, 0.3);
+}

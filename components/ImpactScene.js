@@ -1,170 +1,90 @@
 "use client";
 
-import React, { useRef, useMemo, useEffect } from "react";
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { Sphere } from "@react-three/drei";
-import { motion } from "framer-motion";
-import * as THREE from "three";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useTransform } from "framer-motion";
+import { ArrowRight, Github, FileText } from "lucide-react";
+import SceneCanvas from "./three/SceneCanvas";
+import ShaderParticles from "./three/ShaderParticles";
+import Globe from "./three/Globe";
+import { Scene, Stage, Eyebrow, Title, Lead, useSceneProgress } from "./ui/Scene";
+import { FOCUS } from "../lib/hotspots";
+import { rotationToFace, sweepLongitude } from "../lib/geo";
+import { LINKS } from "../lib/chapters";
+import theme from "../lib/theme";
 
-// 🔹 Interactive Particle Background
-function InteractiveParticles({ count = 3000 }) {
-  const particlesRef = useRef();
-  const basePositions = useMemo(() => {
-    const arr = new Float32Array(count * 3);
-    for (let i = 0; i < count * 3; i++) arr[i] = (Math.random() - 0.5) * 20;
-    return arr;
-  }, [count]);
+/* The Scene 1 globe returns, facing the same region, and turns green as you scroll in. */
+function SecureGlobe() {
+  const progress = useSceneProgress();
+  const secure = useTransform(progress, [0.05, 0.45], [0, 1], { clamp: true });
+  const rig = useRef();
+  const globe = useRef();
+  const start = useMemo(() => rotationToFace(FOCUS.lat, FOCUS.lon), []);
+  // Begins facing India/Africa (same view Scene 1 ended on), then sweeps east and west.
+  const phase = useRef(Math.asin((52 - 25) / 100));
 
-  const positions = useMemo(() => new Float32Array(basePositions), [basePositions]);
-  const mouse = useRef([0, 0]);
+  useFrame((state, delta) => {
+    if (!rig.current || !globe.current) return;
+    const mobile = state.viewport.aspect < 1;
+    phase.current += delta * 0.07;
+    globe.current.rotation.set(start.x * 0.6, rotationToFace(0, sweepLongitude(phase.current)).y, 0);
 
-  // Track mouse movement
-  useEffect(() => {
-    const handleMouse = (e) => {
-      const x = (e.clientX / window.innerWidth) * 20 - 10; // scale to particle space
-      const y = -(e.clientY / window.innerHeight) * 20 + 10; // invert y
-      mouse.current = [x, y];
-    };
-    window.addEventListener("mousemove", handleMouse);
-    return () => window.removeEventListener("mousemove", handleMouse);
-  }, []);
+    rig.current.position.set(mobile ? 0 : 2.2, mobile ? -1.4 : -0.1, 0);
+    rig.current.scale.setScalar(mobile ? 0.85 : 1.3);
 
-  useFrame(() => {
-    if (!particlesRef.current) return;
-    const pos = particlesRef.current.geometry.attributes.position;
-
-    for (let i = 0; i < pos.count; i++) {
-      let x = pos.getX(i);
-      let y = pos.getY(i);
-      let z = pos.getZ(i);
-
-      const dx = x - mouse.current[0];
-      const dy = y - mouse.current[1];
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      // Repel if close to cursor
-      if (dist < 3) {
-        const force = (1 - dist / 3) * 0.2;
-        x += dx * force;
-        y += dy * force;
-      }
-
-      // Smooth return to base position
-      const ox = basePositions[i * 3];
-      const oy = basePositions[i * 3 + 1];
-      const oz = basePositions[i * 3 + 2];
-      x += (ox - x) * 0.02;
-      y += (oy - y) * 0.02;
-      z += (oz - z) * 0.02;
-
-      pos.setXYZ(i, x, y, z);
-    }
-
-    pos.needsUpdate = true;
-    particlesRef.current.rotation.y += 0.0005;
+    const ease = Math.min(1, delta * 3);
+    rig.current.rotation.x += (-state.pointer.y * 0.12 - rig.current.rotation.x) * ease;
+    rig.current.rotation.y += (state.pointer.x * 0.18 - rig.current.rotation.y) * ease;
   });
 
   return (
-    <points ref={particlesRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={positions.length / 3}
-          array={positions}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial size={0.03} color="#22c55e" transparent opacity={0.5} />
-    </points>
-  );
-}
-
-// 🔹 Hotspot
-function GreenHotspot({ position }) {
-  const ref = useRef();
-  useFrame(() => {
-    if (ref.current) ref.current.scale.setScalar(0.8 + 0.4 * Math.sin(performance.now() * 0.005));
-  });
-
-  return (
-    <mesh position={position}>
-      <sphereGeometry args={[0.03, 8, 8]} />
-      <meshStandardMaterial color="#22c55e" emissive="#22c55e" emissiveIntensity={0.7} />
-    </mesh>
-  );
-}
-
-// 🔹 Globe with Earth texture
-function Globe() {
-  const globeRef = useRef();
-  const earthTexture = useLoader(THREE.TextureLoader, "/textures/earth_daymap.jpg");
-
-  const hotspotPositions = useMemo(() => {
-    const arr = [];
-    for (let i = 0; i < 20; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI;
-      const r = 2.02;
-      const x = r * Math.sin(phi) * Math.cos(theta);
-      const y = r * Math.cos(phi);
-      const z = r * Math.sin(phi) * Math.sin(theta);
-      arr.push([x, y, z]);
-    }
-    return arr;
-  }, []);
-
-  useFrame(() => {
-    if (globeRef.current) globeRef.current.rotation.y += 0.002;
-  });
-
-  return (
-    <group ref={globeRef}>
-      <Sphere args={[2, 64, 64]}>
-        <meshStandardMaterial map={earthTexture} roughness={0.7} metalness={0.1} />
-      </Sphere>
-      {hotspotPositions.map((pos, i) => (
-        <GreenHotspot key={i} position={pos} />
-      ))}
+    <group ref={rig}>
+      <Globe ref={globe} secure={secure} />
     </group>
   );
 }
 
-// 🔹 Impact Scene
+const buttonBase =
+  "pointer-events-auto inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition-colors";
+
 export default function ImpactScene() {
   return (
-    <div className="relative w-full h-screen bg-black text-white overflow-hidden">
-      <Canvas camera={{ position: [0, 0, 8], fov: 50 }}>
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[5, 5, 5]} intensity={1.5} />
-        <InteractiveParticles count={3000} />
-        <Globe />
-      </Canvas>
+    <Scene id="impact" length={2}>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,rgba(45,212,191,0.10),transparent_60%)]" />
 
-      {/* Text Overlay */}
-      <motion.div
-        className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center"
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-      >
-        <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-green-400 to-green-200 bg-clip-text text-transparent drop-shadow-lg">
-          Secure. Traceable. Global Impact.
-        </h2>
-        <p className="mt-6 text-xl md:text-2xl text-gray-300 max-w-xl">
-          Empowering industries worldwide with trust, security, and transparency in every supply chain.
-        </p>
-        <motion.a
-          href="https://trustchain-livid.vercel.app/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-8 px-10 py-4 bg-green-500 rounded-xl font-bold text-black shadow-lg hover:bg-green-400 inline-block"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-        >
-          Get Started
-        </motion.a>
-      </motion.div>
-    </div>
+      <SceneCanvas camera={{ position: [0, 0, 8], fov: 45 }}>
+        <ShaderParticles count={1500} spread={30} color={theme.brand.soft} size={0.03} opacity={0.3} radius={1.2} strength={0.5} spin={0.01} />
+        <SecureGlobe />
+      </SceneCanvas>
+
+      <div className="pointer-events-none absolute inset-0 mx-auto flex max-w-7xl items-start px-6 pt-28 md:items-center md:px-12 md:pt-0">
+        <div className="grid w-full max-w-xl lg:max-w-2xl">
+          <Stage from={0} to={1} className="col-start-1 row-start-1 space-y-6 self-center">
+            <Eyebrow chapter="impact" tone="safe" />
+            <Title>
+              TrustChain saves lives. <span className="text-brand">Secures medicines.</span> Builds trust.
+            </Title>
+            <Lead>
+              Every strip verified, every handover on-chain, every alert in real time, from the factory
+              floor to the patient&apos;s hand.
+            </Lead>
+
+            <Stage from={0.45} to={1} className="flex flex-wrap gap-3 pt-2">
+              <a href={LINKS.demo} target="_blank" rel="noopener noreferrer" className={`${buttonBase} bg-brand text-ink-950 hover:bg-brand-soft`}>
+                Try the demo <ArrowRight className="h-4 w-4" />
+              </a>
+              <a href={LINKS.github} target="_blank" rel="noopener noreferrer" className={`${buttonBase} border border-white/15 text-white hover:bg-white/5`}>
+                <Github className="h-4 w-4" /> GitHub
+              </a>
+              {LINKS.pitchDeck && (
+                <a href={LINKS.pitchDeck} target="_blank" rel="noopener noreferrer" className={`${buttonBase} border border-white/15 text-white hover:bg-white/5`}>
+                  <FileText className="h-4 w-4" /> Pitch deck
+                </a>
+              )}
+            </Stage>
+          </Stage>
+        </div>
+      </div>
+    </Scene>
   );
 }

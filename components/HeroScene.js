@@ -1,246 +1,122 @@
 "use client";
 
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import { Sphere, OrbitControls } from "@react-three/drei";
-import { useRef, useMemo, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { motion, useTransform } from "framer-motion";
 import * as THREE from "three";
-import { TextureLoader } from "three";
+import SceneCanvas from "./three/SceneCanvas";
+import ShaderParticles from "./three/ShaderParticles";
+import Globe from "./three/Globe";
+import { Scene, Stage, Eyebrow, Title, Lead, Panel, EASE, useSceneProgress } from "./ui/Scene";
+import { FOCUS } from "../lib/hotspots";
+import { rotationToFace, lerpAngle, sweepLongitude } from "../lib/geo";
 
-// 🌌 Dense Particle Background
-function Particles() {
-  const particlesRef = useRef();
-  const count = 5000;
+const smooth = (t) => t * t * (3 - 2 * t);
 
-  const basePositions = useMemo(() => {
-    const arr = new Float32Array(count * 3);
-    for (let i = 0; i < count * 3; i++) {
-      arr[i] = (Math.random() - 0.5) * 20;
-    }
-    return arr;
-  }, [count]);
+/* Scroll 0.2 → 0.65 flies the globe from the right-hand side into a close-up of India/Africa. */
+function GlobeRig() {
+  const progress = useSceneProgress();
+  const rig = useRef();
+  const globe = useRef();
+  // Starts over the Americas (sin = -0.85 → about -60°) heading east.
+  const phase = useRef(-1.02);
+  const target = useMemo(() => rotationToFace(FOCUS.lat, FOCUS.lon), []);
 
-  const positions = useMemo(() => new Float32Array(basePositions), [basePositions]);
-  const mouse = useRef([0, 0]);
+  useFrame((state, delta) => {
+    if (!rig.current || !globe.current) return;
+    const f = smooth(THREE.MathUtils.clamp((progress.get() - 0.2) / 0.45, 0, 1));
+    const mobile = state.viewport.aspect < 1;
 
-  useEffect(() => {
-    const handleMouse = (e) => {
-      mouse.current = [
-        (e.clientX / window.innerWidth) * 2 - 1,
-        -(e.clientY / window.innerHeight) * 2 + 1,
-      ];
-    };
-    window.addEventListener("mousemove", handleMouse);
-    return () => window.removeEventListener("mousemove", handleMouse);
-  }, []);
+    phase.current += delta * 0.09 * (1 - f);
+    const idleY = rotationToFace(0, sweepLongitude(phase.current)).y;
+    globe.current.rotation.y = lerpAngle(idleY, target.y, f);
+    globe.current.rotation.x = THREE.MathUtils.lerp(0.25, target.x, f);
 
-  useFrame(() => {
-    if (!particlesRef.current) return;
-    const pos = particlesRef.current.geometry.attributes.position;
-    for (let i = 0; i < pos.count; i++) {
-      const ox = basePositions[i * 3];
-      const oy = basePositions[i * 3 + 1];
-      const oz = basePositions[i * 3 + 2];
+    const from = mobile ? { x: 0, y: -1.6, s: 0.8 } : { x: 2.6, y: 0, s: 1 };
+    const to = mobile ? { x: 0, y: -0.9, s: 1.15 } : { x: 2.5, y: -0.1, s: 1.45 };
+    rig.current.position.set(
+      THREE.MathUtils.lerp(from.x, to.x, f),
+      THREE.MathUtils.lerp(from.y, to.y, f),
+      0
+    );
+    rig.current.scale.setScalar(THREE.MathUtils.lerp(from.s, to.s, f));
 
-      let x = pos.getX(i);
-      let y = pos.getY(i);
-      let z = pos.getZ(i);
-
-      const dx = x / 10 - mouse.current[0];
-      const dy = y / 10 - mouse.current[1];
-      const dist = Math.sqrt(dx * dx + dy * dy);
-
-      if (dist < 1) {
-        const force = (1 - dist) * 0.1;
-        x += dx * force;
-        y += dy * force;
-      }
-
-      x += (ox - x) * 0.015;
-      y += (oy - y) * 0.015;
-      z += (oz - z) * 0.015;
-
-      pos.setXYZ(i, x, y, z);
-    }
-
-    pos.needsUpdate = true;
-    particlesRef.current.rotation.y += 0.0005;
+    // Subtle cursor tilt that calms down once we are focused on the region.
+    const ease = Math.min(1, delta * 3);
+    const tilt = 1 - f * 0.7;
+    rig.current.rotation.x += (-state.pointer.y * 0.12 * tilt - rig.current.rotation.x) * ease;
+    rig.current.rotation.y += (state.pointer.x * 0.18 * tilt - rig.current.rotation.y) * ease;
   });
 
   return (
-    <points ref={particlesRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          count={positions.length / 3}
-          array={positions}
-          itemSize={3}
+    <group ref={rig}>
+      <Globe ref={globe} secure={0} />
+    </group>
+  );
+}
+
+function ScrollHint() {
+  const progress = useSceneProgress();
+  const opacity = useTransform(progress, [0, 0.08], [1, 0]);
+  return (
+    <motion.div
+      style={{ opacity }}
+      className="pointer-events-none absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-slate-500"
+    >
+      Scroll
+      <span className="relative h-10 w-px overflow-hidden bg-white/10">
+        <motion.span
+          className="absolute inset-x-0 top-0 h-4 bg-slate-300"
+          animate={{ y: [-16, 40] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
         />
-      </bufferGeometry>
-      <pointsMaterial size={0.035} color="#38bdf8" transparent opacity={0.65} />
-    </points>
+      </span>
+    </motion.div>
   );
 }
 
-// 🌌 Red Blinking Hotspot
-function RedHotspot({ position }) {
-  const materialRef = useRef();
-
-  useFrame(() => {
-    if (materialRef.current) {
-      materialRef.current.emissiveIntensity =
-        0.3 + Math.abs(Math.sin(performance.now() * 0.01)) * 0.7;
-    }
-  });
-
-  return (
-    <mesh position={position}>
-      <sphereGeometry args={[0.015, 8, 8]} />
-      <meshStandardMaterial
-        ref={materialRef}
-        color="#f87171"
-        emissive="#f87171"
-        emissiveIntensity={0.3}
-      />
-    </mesh>
-  );
-}
-
-// 🌌 Latitude/Longitude to XYZ with optional offsets
-function latLonToXYZ(latDeg, lonDeg, radius, offsetLat = 0, offsetLon = 0) {
-  // Apply offsets
-  const latRad = ((latDeg + offsetLat) * Math.PI) / 300;
-  const lonRad = ((lonDeg + offsetLon) * Math.PI) / 40;
-
-  const x = radius * Math.cos(latRad) * Math.cos(lonRad);
-  const y = radius * Math.sin(latRad);
-  const z = radius * Math.cos(latRad) * Math.sin(lonRad);
-  return [x, y, z];
-}
-
-
-// 🌌 Generate Hotspots (biased towards India + Africa)
-function generateHotspots() {
-  const hotspots = [];
-
-  // India cluster
-  for (let i = 0; i < 60; i++) {
-    const lat = Math.random() * (36 - 6) + 6;
-    const lon = Math.random() * (97 - 68) + 68;
-    hotspots.push(latLonToXYZ(lat, lon, 2.02));
-  }
-
-  // Africa cluster
-  for (let i = 0; i < 50; i++) {
-    const lat = Math.random() * (37 + 35) - 35;
-    const lon = Math.random() * (51 + 17) - 17;
-    hotspots.push(latLonToXYZ(lat, lon, 2.02));
-  }
-
-  // A few safe scatter (restricted to major regions to avoid oceans)
-  const safeRegions = [
-    [40, -100], // USA
-    [55, 10],   // Europe
-    [35, 139],  // Japan
-  ];
-  safeRegions.forEach(([lat, lon]) => {
-    for (let i = 0; i < 15; i++) {
-      hotspots.push(latLonToXYZ(lat + Math.random() * 5, lon + Math.random() * 5, 2.02));
-    }
-  });
-
-  return hotspots;
-}
-
-// 🌌 Futuristic Globe
-function FuturisticGlobe({ scrollYProgress }) {
-  const globeRef = useRef();
-  const colorMap = useLoader(TextureLoader, "/textures/earth_daymap.jpg");
-  const hotspotPositions = useMemo(() => generateHotspots(), []);
-
-  const globeScale = useTransform(scrollYProgress, [0, 0.3], [1, 1.2]);
-  const globePositionX = useTransform(scrollYProgress, [0, 0.3], [0, -0.8]);
-
-  useFrame(() => {
-    if (!globeRef.current) return;
-    globeRef.current.rotation.y += 0.005;
-    globeRef.current.scale.setScalar(globeScale.get());
-    globeRef.current.position.x = globePositionX.get() + 3;
-  });
-
-  return (
-    <>
-      <group ref={globeRef}>
-        <Sphere args={[2, 128, 128]}>
-          <meshStandardMaterial map={colorMap} roughness={0.7} metalness={0.1} />
-        </Sphere>
-
-        <Sphere args={[2.05, 128, 128]}>
-          <meshStandardMaterial
-            color="#0f172a"
-            emissive="#6366f1"
-            emissiveIntensity={0.3}
-            roughness={0}
-            metalness={0.5}
-            transparent
-            opacity={0.4}
-            side={THREE.DoubleSide}
-          />
-        </Sphere>
-
-        {hotspotPositions.map((pos, i) => (
-          <RedHotspot key={i} position={pos} />
-        ))}
-      </group>
-
-      {/* ✅ Controls now locked around India/Africa */}
-      <OrbitControls
-        enableZoom={false}
-        minDistance={3}
-        maxDistance={10}
-        target={[0.8, 0.2, 0]} // centers camera
-        rotateSpeed={2}
-      />
-    </>
-  );
-}
-
-// 🚀 Hero Scene
 export default function HeroScene() {
-  const { scrollYProgress } = useScroll();
-  const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-  const y = useTransform(scrollYProgress, [0, 0.3], [0, -80]);
-
   return (
-    <div className="relative w-full h-screen bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950">
-      <Canvas camera={{ position: [0, 0, 8], fov: 50 }}>
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[5, 5, 5]} intensity={1.5} />
-        <Particles />
-        <FuturisticGlobe scrollYProgress={scrollYProgress} />
-      </Canvas>
+    <Scene id="problem" length={2.5}>
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_50%,rgba(244,63,94,0.10),transparent_60%)]" />
 
-      <motion.div
-        className="absolute inset-0 flex items-center justify-start px-12 pointer-events-none"
-        style={{ opacity, y }}
-        initial={{ opacity: 0, x: -100 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1.2, ease: "easeOut" }}
-      >
-        <div className="max-w-lg text-left">
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight text-white drop-shadow-lg">
-            10–30% of medicines worldwide are fake.
-          </h1>
-          <motion.p
-            className="mt-4 text-lg md:text-2xl text-red-400 font-semibold"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 1 }}
-          >
-            Trust is broken. Lives are lost.
-          </motion.p>
+      <SceneCanvas camera={{ position: [0, 0, 8], fov: 45 }}>
+        <ShaderParticles count={1500} spread={30} color="#64748b" size={0.03} opacity={0.35} radius={1.2} strength={0.5} spin={0.01} />
+        <GlobeRig />
+      </SceneCanvas>
+
+      <div className="pointer-events-none absolute inset-0 mx-auto flex max-w-7xl items-start px-6 pt-28 md:items-center md:px-12 md:pt-0">
+        <div className="grid w-full max-w-xl lg:max-w-3xl">
+          <Stage from={0} to={0.22} className="col-start-1 row-start-1 self-center">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: EASE }}
+              className="space-y-6"
+            >
+              <Eyebrow chapter="problem" tone="danger" />
+              <Title as="h1" className="lg:text-8xl">
+                10–30% of medicines worldwide are <span className="text-danger">fake</span>.
+              </Title>
+              <Lead className="text-lg md:text-xl">Trust is broken. Lives are lost.</Lead>
+            </motion.div>
+          </Stage>
+
+          <Stage from={0.5} to={1} className="col-start-1 row-start-1 space-y-6 self-center">
+            <Eyebrow chapter="problem" tone="danger" />
+            <Title>The crisis hits hardest where care is hardest to reach.</Title>
+            <Panel className="p-5">
+              <div className="text-5xl font-extrabold tracking-tight text-danger">1 in 10</div>
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                medical products in low- and middle-income countries is substandard or falsified.
+              </p>
+              <p className="mt-3 text-[11px] uppercase tracking-[0.2em] text-slate-600">WHO, 2017</p>
+            </Panel>
+          </Stage>
         </div>
-      </motion.div>
-    </div>
+      </div>
+
+      <ScrollHint />
+    </Scene>
   );
 }
